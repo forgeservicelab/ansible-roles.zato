@@ -1,0 +1,25 @@
+---
+# tasks file for zato
+- name: Install prerequisites
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - python-software-properties
+    - python-apt
+
+- name: Add Zato package signing key
+  apt_key:
+    url: https://zato.io/repo/zato-0CBD7F72.pgp.asc
+
+- name: Add repositories
+  apt_repository:
+    repo: "{{ item }}"
+  with_items:
+    - deb http://ftp.de.debian.org/debian wheezy-backports main
+    - https://zato.io/repo/stable/2.0/debian
+
+- name: Install Zato
+  apt:
+    name: zato
