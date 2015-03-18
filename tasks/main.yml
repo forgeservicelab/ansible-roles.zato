@@ -6,6 +6,7 @@
     state: present
   with_items:
     - apt-transport-https
+    - libffi-dev
     - python-software-properties
     - python-apt
 
