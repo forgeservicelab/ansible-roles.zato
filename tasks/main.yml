@@ -18,7 +18,7 @@
     repo: "{{ item }}"
   with_items:
     - deb http://ftp.de.debian.org/debian wheezy-backports main
-    - deb https://zato.io/repo/stable/2.0/debian
+    - deb https://zato.io/repo/stable/2.0/debian wheezy main
 
 - name: Install Zato
   apt:
