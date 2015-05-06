@@ -8,7 +8,6 @@
     - apt-transport-https
     - libffi-dev
     - python-software-properties
-    - python-apt
 
 - name: Add Zato package signing key
   apt_key:
@@ -18,9 +17,36 @@
   apt_repository:
     repo: "{{ item }}"
   with_items:
-    - deb http://ftp.de.debian.org/debian wheezy-backports main
+    - deb http://ftp.is.debian.org/debian wheezy-backports main
     - deb https://zato.io/repo/stable/2.0/debian wheezy main
 
 - name: Install Zato
   apt:
     name: zato
+
+- name: Create Zato cluster directory
+  file:
+    path: /opt/zato/zatocluster
+    state: directory
+  sudo_user: zato
+
+- name: Create quickstart Zato cluster
+  command: zato quickstart create /opt/zato/zatocluster sqlite localhost 6379 --kvdb_password ''
+  args:
+    creates: /opt/zato/zatocluster/zato-qs-start.sh
+  sudo_user: zato
+  register: quickstart 
+
+- shell: "find /opt/zato/zatocluster/ -name pidfile | wc | awk '{print $1}'"
+  register: pids
+
+- name: Start Zato cluster
+  command: "ssh {{ ansible_ssh_user }}@{{ ansible_ssh_host }} sudo -u zato -H -i /opt/zato/zatocluster/zato-qs-start.sh"
+  connection: local
+  sudo: false
+  when: pids.stdout == "0"
+
+- name: Cluster admin credentials
+  debug:
+    msg: "{{ ['These are your credentials for Zato Web Admin interface'] + quickstart.stdout_lines[-3].split(', ') }}"
+  when: quickstart.changed
